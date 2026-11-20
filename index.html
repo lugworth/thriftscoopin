@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0a0a">
+<title>Austin Day Trip · Sat Nov 21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="leaflet.css">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #151515;
+    --surface-2: #1d1d1d;
+    --border: #272727;
+    --text: #f4f4f2;
+    --muted: #9b9b97;
+    --faint: #6d6d6a;
+    --yellow: #f2ee5c;
+    --green: #43df7f;
+    --pink: #f06db4;
+    --blue: #5180f6;
+    --ink: #0a0a0a;
+    --r-lg: 26px;
+    --r-md: 18px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+  .display { font-family: "Inter Tight", Inter, system-ui, sans-serif; }
+
+  .page { max-width: 1320px; margin: 0 auto; padding: 16px 14px 48px; }
+
+  /* ---------- pills ---------- */
+  .pill { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 11px 18px; font-weight: 600; font-size: 14px; text-decoration: none; border: 1.5px solid transparent; cursor: pointer; white-space: nowrap; line-height: 1.1; }
+  .pill.white { background: #fff; color: var(--ink); }
+  .pill.dark { background: var(--surface-2); color: var(--text); border-color: var(--border); }
+  .pill.ink { background: var(--ink); color: #fff; }
+  .pill.outline { background: transparent; color: var(--ink); border-color: rgba(10,10,10,.85); }
+  .pill.sm { padding: 8px 13px; font-size: 13px; }
+  .pill svg { flex: none; }
+
+  /* ---------- hero ---------- */
+  .hero { position: relative; overflow: hidden; background: #000; border: 1px solid var(--border); border-radius: var(--r-lg); padding: 76px 22px 24px; min-height: 360px; display: flex; flex-direction: column; justify-content: flex-end; }
+  .hero .burst { position: absolute; top: -40px; right: -50px; width: 340px; height: 340px; pointer-events: none; }
+  .hero .burst2 { position: absolute; bottom: 26px; right: 26px; width: 110px; height: 110px; pointer-events: none; }
+  .hero .burst, .hero .burst2 { z-index: 0; }
+  .hero h1, .hero .sub, .hero .cta { z-index: 1; }
+  .hero .chip.ghost { background: #151515; }
+  @media (max-width: 640px) { .hero .burst { width: 230px; height: 230px; top: -46px; right: -56px; } .hero .burst2 { width: 64px; height: 64px; bottom: 28px; right: 22px; } }
+  .hero .chips { position: absolute; top: 20px; left: 20px; display: flex; gap: 8px; flex-wrap: wrap; z-index: 1; }
+  .chip { display: inline-flex; align-items: center; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600; letter-spacing: .02em; }
+  .chip.pink { background: var(--pink); color: var(--ink); }
+  .chip.ghost { background: rgba(255,255,255,.08); color: var(--text); border: 1px solid rgba(255,255,255,.14); }
+  .hero h1 { position: relative; margin: 0 0 10px; font-family: "Inter Tight", Inter, sans-serif; font-weight: 800; text-transform: uppercase; font-size: clamp(40px, 8.5vw, 86px); line-height: .92; letter-spacing: -.02em; max-width: 9ch; }
+  .hero .sub { position: relative; margin: 0 0 18px; color: #cfcfcb; font-size: 15px; max-width: 46ch; }
+  .hero .cta { position: relative; display: flex; flex-wrap: wrap; gap: 10px; }
+
+  /* ---------- tiles ---------- */
+  .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
+  @media (min-width: 760px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .tile { border-radius: var(--r-md); padding: 14px 16px 15px; color: var(--ink); min-height: 104px; display: flex; flex-direction: column; justify-content: space-between; }
+  .tile .k { font-size: 12.5px; font-weight: 600; opacity: .72; }
+  .tile .v { font-family: "Inter Tight", Inter, sans-serif; font-weight: 800; font-size: 34px; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .tile .v small { font-size: 16px; font-weight: 700; letter-spacing: 0; margin-left: 3px; }
+  .bg-yellow { background: var(--yellow); } .bg-green { background: var(--green); } .bg-pink { background: var(--pink); } .bg-blue { background: var(--blue); }
+
+  /* ---------- day bar ---------- */
+  .daybar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px 16px 12px; margin-bottom: 14px; }
+  .daybar .head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .daybar .head b { font-family: "Inter Tight", Inter, sans-serif; font-size: 17px; font-weight: 700; }
+  .daybar .head span { font-size: 12.5px; color: var(--muted); }
+  .bar { display: flex; height: 30px; border-radius: 999px; overflow: hidden; background: #000; border: 1px solid var(--border); padding: 3px; gap: 2px; }
+  .bar > div { height: 100%; border-radius: 999px; min-width: 3px; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--ink); cursor: pointer; }
+  .bar > div.drv { background: #2b2b2b; cursor: default; }
+  .bar > div.meal { background: #e9e9e4; }
+  .ticks { position: relative; height: 16px; margin: 6px 4px 0; font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .ticks span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+  .ticks span:first-child { transform: none; }
+  .ticks span:last-child { transform: translateX(-100%); }
+  .dlegend { display: flex; gap: 14px; margin-top: 8px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .dlegend i { display: inline-block; width: 18px; height: 8px; border-radius: 4px; vertical-align: middle; margin-right: 6px; }
+
+  /* ---------- layout ---------- */
+  .layout { display: grid; gap: 14px; }
+  @media (min-width: 980px) {
+    .layout { grid-template-columns: minmax(0, 1.2fr) minmax(400px, 1fr); align-items: start; }
+    .layout > .map-wrap { position: sticky; top: 14px; }
+    #map { height: calc(100vh - 28px) !important; min-height: 560px; }
+  }
+
+  /* ---------- map ---------- */
+  .map-wrap { position: relative; border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--border); background: #101010; }
+  #map { height: 58vh; min-height: 380px; width: 100%; background: #101010; }
+  .leaflet-container { font-family: Inter, system-ui, sans-serif; background: #101010; }
+  .seg { position: absolute; z-index: 500; top: 12px; left: 12px; display: flex; gap: 4px; background: rgba(21,21,21,.94); border: 1px solid var(--border); border-radius: 999px; padding: 4px; }
+  .seg button { border: 0; background: transparent; padding: 7px 13px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--pink); color: var(--ink); }
+  .map-legend { position: absolute; z-index: 500; left: 12px; bottom: 12px; background: rgba(21,21,21,.94); border: 1px solid var(--border); border-radius: 999px; padding: 7px 12px; font-size: 12px; color: var(--muted); display: flex; gap: 12px; align-items: center; }
+  .map-legend i { display: inline-block; vertical-align: middle; margin-right: 6px; }
+  .map-legend .lr { width: 22px; height: 5px; border-radius: 3px; background: var(--yellow); }
+  .map-legend .ls { width: 13px; height: 13px; border-radius: 50%; background: var(--green); }
+  .map-error { position: absolute; left: 12px; right: 12px; bottom: 56px; z-index: 500; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; font-size: 13px; display: none; }
+
+  .pin { width: 30px; height: 30px; border-radius: 50%; color: var(--ink); display: grid; place-items: center; font-weight: 800; font-size: 14px; font-family: "Inter Tight", Inter, sans-serif; border: 2.5px solid #0a0a0a; box-shadow: 0 0 0 1.5px rgba(255,255,255,.55), 0 3px 10px rgba(0,0,0,.6); transition: transform .15s; }
+  .pin.home { background: #fff; font-size: 11px; width: 34px; height: 34px; }
+  .pin.active { transform: scale(1.25); box-shadow: 0 0 0 3px #fff, 0 3px 12px rgba(0,0,0,.6); }
+  .city-label { font-family: "Inter Tight", Inter, sans-serif; font-size: 11px; color: #6a6a66; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; pointer-events: none; text-shadow: 0 0 3px #101010, 0 0 3px #101010; }
+  .city-label.big { font-size: 14px; color: #8c8c87; letter-spacing: .14em; }
+  .shield { font: 700 10px/1 Inter, sans-serif; color: #e8e8e4; background: #2a2a2a; border: 1px solid #444; padding: 3px 6px; border-radius: 999px; white-space: nowrap; pointer-events: none; }
+  .leaflet-bar { border: 1px solid var(--border) !important; border-radius: 14px !important; overflow: hidden; box-shadow: none !important; }
+  .leaflet-bar a, .leaflet-bar a:hover { background: var(--surface) !important; color: var(--text) !important; border-bottom-color: var(--border) !important; width: 36px !important; height: 36px !important; line-height: 36px !important; }
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--surface); color: var(--text); box-shadow: 0 6px 20px rgba(0,0,0,.6); }
+  .leaflet-popup-content-wrapper { border-radius: 16px; border: 1px solid var(--border); }
+  .leaflet-popup-content { margin: 11px 14px; font-size: 13px; line-height: 1.45; }
+  .leaflet-popup-content strong { font-family: "Inter Tight", Inter, sans-serif; font-size: 15px; font-weight: 700; display: block; }
+  .leaflet-popup-content .muted { color: var(--muted); }
+  .leaflet-container a.leaflet-popup-close-button { color: var(--muted); }
+  .leaflet-control-attribution { font-size: 10px; background: rgba(10,10,10,.8) !important; color: var(--faint) !important; border-radius: 10px 0 0 0; }
+  .leaflet-control-attribution a { color: var(--muted) !important; }
+
+  /* ---------- plan ---------- */
+  .sec-h { display: flex; align-items: baseline; justify-content: space-between; margin: 4px 2px 10px; }
+  .sec-h h2 { font-family: "Inter Tight", Inter, sans-serif; font-size: 24px; font-weight: 800; margin: 0; letter-spacing: -.01em; }
+  .sec-h span { font-size: 13px; color: var(--muted); }
+  .plan-list { display: grid; gap: 0; }
+
+  .stop { position: relative; border-radius: var(--r-lg); padding: 16px 16px 16px; color: var(--ink); overflow: hidden; transition: box-shadow .15s, transform .15s; }
+  .stop.active { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px #fff; }
+  .stop .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .num { width: 34px; height: 34px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-family: "Inter Tight", Inter, sans-serif; font-weight: 800; font-size: 15px; flex: none; }
+  .time { background: var(--ink); color: #fff; border-radius: 999px; padding: 6px 11px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stop h3 { font-family: "Inter Tight", Inter, sans-serif; font-weight: 800; font-size: 22px; line-height: 1.08; letter-spacing: -.01em; margin: 0 0 4px; max-width: 22ch; }
+  .stop .addr { font-size: 12.5px; opacity: .7; margin: 0 0 10px; }
+  .stop p { margin: 0 0 12px; font-size: 14px; color: rgba(10,10,10,.86); max-width: 52ch; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: rgba(10,10,10,.12); color: var(--ink); }
+  .tag.k { background: var(--ink); color: #fff; }
+  .tag.warn::before { content: "!"; display: grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: var(--yellow); color: var(--ink); font-size: 10px; font-weight: 800; }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .stop .mini-burst { position: absolute; right: -18px; top: -18px; width: 120px; height: 120px; opacity: .9; pointer-events: none; }
+  .stop.has-burst .top .time { margin-right: 64px; }
+
+  .stop.dark { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+  .stop.dark p { color: #cfcfcb; }
+  .stop.dark .addr { color: var(--muted); opacity: 1; }
+  .stop.dark .num { background: #fff; color: var(--ink); font-size: 11px; }
+  .stop.dark .time { background: var(--surface-2); border: 1px solid var(--border); }
+  .stop.meal .num { background: transparent; border: 1.5px dashed var(--faint); color: var(--muted); }
+  .stop.dark h3 { font-size: 19px; }
+
+  .drive { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 12.5px; color: var(--muted); position: relative; }
+  .drive::before { content: ""; position: absolute; left: 32px; top: 0; bottom: 0; border-left: 2px dotted #3a3a3a; }
+  .drive .ic { position: relative; z-index: 1; width: 34px; height: 26px; display: grid; place-items: center; background: var(--bg); color: var(--muted); }
+  .drive b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* ---------- notes ---------- */
+  .notes { margin-top: 22px; }
+  .notes ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+  .notes li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: start; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px 14px; font-size: 14px; color: #d6d6d2; }
+  .notes li .dot { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: var(--ink); font-weight: 800; font-family: "Inter Tight", Inter, sans-serif; }
+  .notes li strong { color: var(--text); font-weight: 600; display: block; margin-bottom: 1px; }
+  .notes a { color: var(--yellow); }
+  footer { margin-top: 22px; font-size: 12px; color: var(--faint); line-height: 1.6; padding: 0 2px; }
+  footer a { color: var(--muted); }
+
+  /* ---------- mobile tab bar ---------- */
+  .tabbar { position: fixed; z-index: 1000; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 4px; background: rgba(21,21,21,.96); border: 1px solid var(--border); border-radius: 999px; padding: 5px; box-shadow: 0 8px 28px rgba(0,0,0,.6); }
+  .tabbar button { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: var(--muted); padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .tabbar button[aria-current="true"] { background: #fff; color: var(--ink); }
+  @media (max-width: 979px) { body { padding-bottom: 76px; } }
+  @media (min-width: 980px) { .tabbar { display: none; } }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .pin, .stop { transition: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="hero" id="top">
+    <svg class="burst" viewBox="-100 -100 200 200" aria-hidden="true"><path data-burst="18,96,40,2.6" fill="#f06db4"/></svg>
+    <svg class="burst2" viewBox="-100 -100 200 200" aria-hidden="true"><path data-burst="10,95,38,5" fill="#ffffff"/></svg>
+    <div class="chips"><span class="chip pink">Sat · Nov 21</span><span class="chip ghost">Thrift · coffee · craft</span></div>
+    <h1>Austin day trip</h1>
+    <p class="sub">San Antonio → South Austin → North &amp; East Austin → San Marcos → home</p>
+    <div class="cta">
+      <a class="pill white" id="gmaps" target="_blank" rel="noopener"
+         href="https://www.google.com/maps/dir/San+Antonio,+Texas/4211+Todd+Ln,+Austin,+TX+78744/2311+Thornton+Rd,+Austin,+TX+78704/Barrett's+Coffee,+713+W+St+Johns+Ave,+Austin,+TX+78752/650+Canion+St,+Austin,+TX+78752/Fuzz+Lab+Craft+Store,+6406+N+Interstate+Hwy+35+STE+1801,+Austin,+TX+78752/2005+Wheless+Ln,+Austin,+TX+78723/1005+TX-80,+San+Marcos,+TX+78666/San+Antonio,+Texas/@29.8824878,-98.4229149,10z/data=!3m1!4b1!4m58!4m57!1m5!1m1!1s0x865c58af04d00eaf:0x856e13b10a016bc!2m2!1d-98.4945922!2d29.4251905!1m5!1m1!1s0x8644b47f6d6483bb:0xc2a95526aa144db2!2m2!1d-97.738264!2d30.2086684!1m5!1m1!1s0x8644b4dbcc841cef:0x8999d7f6bb61565a!2m2!1d-97.7714222!2d30.244475!1m5!1m1!1s0x8644ca365e2bba7d:0x3701d606bcf6ce99!2m2!1d-97.7174799!2d30.3389733!1m5!1m1!1s0x8644ca37896825bb:0x511e0907ec3cebcd!2m2!1d-97.7182237!2d30.3349575!1m5!1m1!1s0x8644cb1940af4fff:0x22898fe6c2ed742d!2m2!1d-97.7077534!2d30.3265992!1m5!1m1!1s0x8644c9f0080fab6f:0xb36a788535731ee!2m2!1d-97.6881339!2d30.3134086!1m5!1m1!1s0x865ca853377960f9:0xf3d1f9024883d308!2m2!1d-97.9163635!2d29.8825839!1m5!1m1!1s0x865c58af04d00eaf:0x856e13b10a016bc!2m2!1d-98.4945922!2d29.4251905!2m1!2b1!3e0?entry=ttu&amp;g_ep=EgoyMDI2MTExOC4wIKXMDSoASAFQAw%3D%3D">
+        Open route in Google Maps
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <button type="button" class="pill dark" data-go="plan">See the plan</button>
+    </div>
+  </header>
+
+  <section class="tiles" aria-label="Trip summary">
+    <div class="tile bg-yellow"><span class="k">Round trip</span><span class="v"><span id="stat-mi">179</span><small>mi</small></span></div>
+    <div class="tile bg-green"><span class="k">Behind the wheel</span><span class="v">~4<small>hr</small></span></div>
+    <div class="tile bg-pink"><span class="k">Stops (1 optional)</span><span class="v">7</span></div>
+    <div class="tile bg-blue"><span class="k">Leave 8:30 AM · home</span><span class="v">~8<small>PM</small></span></div>
+  </section>
+
+  <section class="daybar" aria-label="The day at a glance">
+    <div class="head"><b>Your day</b><span>8:30 AM → about 8 PM</span></div>
+    <div class="bar" id="bar"></div>
+    <div class="ticks" id="ticks" aria-hidden="true"></div>
+    <div class="dlegend"><span><i style="background:#2b2b2b;border:1px solid #444"></i>Driving</span><span><i style="background:#e9e9e4"></i>Lunch</span><span><i style="background:linear-gradient(90deg,#f2ee5c,#43df7f,#f06db4,#5180f6)"></i>Stops (tap to find)</span></div>
+  </section>
+
+  <div class="layout">
+    <section class="map-wrap" id="map-sec" aria-label="Map">
+      <div id="map" role="region" aria-label="Map of the trip route"></div>
+      <div class="seg" role="group" aria-label="Map view">
+        <button type="button" data-view="loop" aria-pressed="true">Whole loop</button>
+        <button type="button" data-view="austin" aria-pressed="false">Austin</button>
+        <button type="button" data-view="sm" aria-pressed="false">San Marcos</button>
+      </div>
+      <div class="map-legend" aria-hidden="true"><span><i class="lr"></i>Route</span><span><i class="ls"></i>Stop</span></div>
+      <div class="map-error" id="map-error">The street layer didn't load, but the stops are still placed. Use the Google Maps button for turn-by-turn directions.</div>
+    </section>
+
+    <main>
+      <section id="plan" aria-labelledby="plan-h">
+        <div class="sec-h"><h2 id="plan-h">The plan</h2><span>Sat · Nov 21</span></div>
+        <div class="plan-list" id="timeline"></div>
+      </section>
+
+      <section class="notes" id="notes" aria-labelledby="notes-h">
+        <div class="sec-h"><h2 id="notes-h">Good to know</h2></div>
+        <ul>
+          <li><span class="dot bg-yellow">1</span><span><strong>Running late?</strong>Austin Creative Reuse is the easiest stop to drop. Barrett's is the one not to push back, since it closes at 4 on Saturdays.</span></li>
+          <li><span class="dot bg-pink">2</span><span><strong>Hours that disagree online</strong>Heartening is listed as both 11–5 and 10–6 on Saturdays, and USE2 as both noon–6 and 11–5. The planned times work either way.</span></li>
+          <li><span class="dot bg-green">3</span><span><strong>Fuzz Lab timing</strong>A quick charm or clip craft fits the hour. A small rug takes 2–3+ hours, so book ahead at <a href="https://fuzzlab.co" target="_blank" rel="noopener">fuzzlab.co</a> if you want one, and drop a later stop.</span></li>
+          <li><span class="dot bg-blue">4</span><span><strong>Texas State Surplus</strong>Open weekdays only (Mon–Fri, 8 AM–4:30 PM), so save it for a weekday trip.</span></li>
+          <li><span class="dot" style="background:#fff">+</span><span><strong>If there's extra time</strong>Arcade UFO, Austin Blades and Collectors Crossroads from your earlier list. Collectors Crossroads is up in Cedar Park, well north of this route.</span></li>
+        </ul>
+      </section>
+
+      <footer>
+        Hours checked Nov 20, 2026 from store sites and listings. Small shops change hours, so call ahead if a stop matters most.
+        Drive times are planning estimates with a cushion for Saturday traffic, not live traffic.<br>
+        Map: roads, water and city limits from the U.S. Census Bureau TIGER/Line 2024. Route drawn on real roads with OSRM using
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> data; Google's directions may choose slightly different roads.
+      </footer>
+    </main>
+  </div>
+</div>
+
+<nav class="tabbar" aria-label="Jump to section">
+  <button type="button" data-go="map-sec" aria-current="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>Map</button>
+  <button type="button" data-go="plan" aria-current="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Plan</button>
+  <button type="button" data-go="notes" aria-current="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>Notes</button>
+</nav>
+
+<script src="leaflet.js"></script>
+<script>
+(function () {
+  // ---------- starbursts (thin alternating rays) ----------
+  document.querySelectorAll('[data-burst]').forEach(el => {
+    const [n, rl, rs, w] = el.getAttribute('data-burst').split(',').map(Number);
+    let d = '';
+    for (let i = 0; i < n * 2; i++) {
+      const a = (Math.PI * i) / n + 0.13 * Math.sin(i * 1.7);
+      const r = i % 2 ? rs + 12 * Math.abs(Math.sin(i * 2.3)) : rl - 10 * Math.abs(Math.cos(i * 1.3));
+      const tx = Math.cos(a) * r, ty = Math.sin(a) * r;
+      const px = -Math.sin(a) * w, py = Math.cos(a) * w;
+      d += 'M' + px.toFixed(2) + ' ' + py.toFixed(2) + 'L' + tx.toFixed(2) + ' ' + ty.toFixed(2) + 'L' + (-px).toFixed(2) + ' ' + (-py).toFixed(2) + 'Z';
+    }
+    el.setAttribute('d', d);
+  });
+
+  const GQ = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+  const C = { yellow: '#f2ee5c', green: '#43df7f', pink: '#f06db4', blue: '#5180f6', white: '#ffffff' };
+
+  // start/end are minutes after midnight; color names map to C
+  const PLAN = [
+    { kind: 'home', n: 'SA', name: 'San Antonio', time: 'Leave 8:30 AM', ll: [29.4251905, -98.4945922],
+      text: 'Head north on I-35. Aim to reach Kenny’s right when it opens.' },
+    { drive: { mi: 75.8, min: 90 }, start: 510, end: 600 },
+    { kind: 'stop', n: 1, color: 'yellow', name: 'Kenny’s Collectibles of Austin', time: '10:00 – 10:45', start: 600, end: 645,
+      addr: '4211 Todd Ln, Austin, TX 78744', ll: [30.2086684, -97.738264], hours: 'Sat 10 AM–4:30 PM',
+      text: 'Sports cards, Pokémon and other trading cards, memorabilia, die-cast. Several rooms to dig through.' },
+    { drive: { min: 10, label: 'Short hop toward South Lamar' }, start: 645, end: 660 },
+    { kind: 'meal', n: '•', name: 'Lunch in South Austin', time: '11:00 – 11:45', start: 660, end: 705,
+      text: 'Not picked yet. Somewhere between Kenny’s and USE2 keeps the route tight.' },
+    { drive: { mi: 4.5, min: 15, label: 'Kenny’s to USE2, with the lunch stop' }, start: 705, end: 720 },
+    { kind: 'stop', n: 2, color: 'green', name: 'USE2 Neighborhood Reuse Center', time: '12:00 – 1:00', start: 720, end: 780,
+      addr: '2311 Thornton Rd, Unit O, Austin, TX 78704', ll: [30.244475, -97.7714222], hours: 'Sat noon–6 PM',
+      text: 'Secondhand household goods, vintage games and puzzles, craft supplies. Don’t show up before noon.' },
+    { drive: { mi: 10.1, min: 25, label: 'North across town' }, start: 780, end: 805 },
+    { kind: 'stop', n: 3, color: 'pink', name: 'Barrett’s Coffee', time: '1:25 – 2:05', start: 805, end: 845,
+      addr: '713 W St Johns Ave, Austin, TX 78752', ll: [30.3389733, -97.7174799], hours: 'Sat 8 AM–4 PM', warn: 'Closes at 4 on Saturdays',
+      text: 'House-roasted coffee. Take a break and grab beans for home.' },
+    { drive: { mi: 0.5, min: 5 }, start: 845, end: 850 },
+    { kind: 'stop', n: 4, color: 'blue', name: 'Heartening', time: '2:10 – 3:00', start: 850, end: 900,
+      addr: '650 Canion St, Unit C (back right side), Austin, TX 78752', ll: [30.3349575, -97.7182237], hours: 'Sat 11 AM–5 PM', warn: 'Listings vary',
+      text: '$3 clothing warehouse ($2 for kids’ clothing). The entrance is around back, behind the “78752” mural.' },
+    { drive: { mi: 1.3, min: 10 }, start: 900, end: 910 },
+    { kind: 'stop', n: 5, color: 'yellow', burst: true, name: 'Fuzz Lab Craft Store', time: '3:10 – 4:10', start: 910, end: 970,
+      addr: '6406 N I-35, Ste 1801 (The Linc), Austin, TX 78752', ll: [30.3265992, -97.7077534], hours: 'Sat 11 AM–9 PM', extra: 'Walk-ins OK, may be a wait',
+      text: 'Drop-in craft studio, so you can make something together. Claw clips, charms and clay phone cases fit the hour. Rugs take much longer.' },
+    { drive: { mi: 2.1, min: 10 }, start: 970, end: 980 },
+    { kind: 'stop', n: 6, color: 'green', opt: true, name: 'Austin Creative Reuse', time: '4:20 – 5:05', start: 980, end: 1025,
+      addr: '2005 Wheless Ln, Austin, TX 78723', ll: [30.3134086, -97.6881339], hours: 'Sat 11 AM–7 PM',
+      text: 'Donated art supplies: beads, fabric, yarn, paper and collage materials, plus an antiques and oddities corner.' },
+    { drive: { mi: 34.7, min: 60, label: 'South on I-35. Saturday traffic can be heavy' }, start: 1025, end: 1085 },
+    { kind: 'stop', n: 7, color: 'pink', name: 'Goodwill – San Marcos', time: '6:05 – 6:50', start: 1085, end: 1130,
+      addr: '1005 TX-80, San Marcos, TX 78666', ll: [29.8825839, -97.9163635], hours: 'Sat 10 AM–8 PM',
+      text: 'Last stop on the way home. It’s open until 8, so there’s slack if Austin runs long.' },
+    { drive: { mi: 50.0, min: 70 }, start: 1130, end: 1200 },
+    { kind: 'home', n: 'SA', name: 'Home to San Antonio', time: 'About 8:00 PM', ll: null,
+      text: 'About 179 miles for the whole loop.' }
+  ];
+
+  const carIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17h14M6 17v2M18 17v2M4 13l2-6h12l2 6v4H4z"/></svg>';
+  const arrow = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>';
+  const fmtMin = m => m >= 60 ? (Math.floor(m / 60) + ' hr' + (m % 60 ? ' ' + (m % 60) + ' min' : '')) : (m + ' min');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const burstPath = (n, rl, rs, w) => { let d = ''; for (let i = 0; i < n * 2; i++) { const a = Math.PI * i / n; const r = i % 2 ? rs : rl; const px = -Math.sin(a) * w, py = Math.cos(a) * w; d += 'M' + px.toFixed(1) + ' ' + py.toFixed(1) + 'L' + (Math.cos(a) * r).toFixed(1) + ' ' + (Math.sin(a) * r).toFixed(1) + 'L' + (-px).toFixed(1) + ' ' + (-py).toFixed(1) + 'Z'; } return d; };
+
+  // ---------- plan list ----------
+  const tl = document.getElementById('timeline');
+  PLAN.forEach((p, idx) => {
+    if (p.drive) {
+      const d = p.drive, el = document.createElement('div');
+      el.className = 'drive';
+      el.innerHTML = '<span class="ic">' + carIcon + '</span><span><b>~' + fmtMin(d.min) + '</b>' + (d.mi ? ' · ' + d.mi + ' mi' : '') + (d.label ? ' · ' + esc(d.label) : '') + '</span>';
+      tl.appendChild(el);
+      return;
+    }
+    const el = document.createElement('article');
+    const dark = p.kind === 'home' || p.kind === 'meal';
+    el.className = 'stop ' + (dark ? 'dark ' + p.kind : 'bg-' + p.color) + (p.burst ? ' has-burst' : '');
+    el.id = 'card-' + idx;
+    const tags = [];
+    if (p.hours) tags.push('<span class="tag k">' + esc(p.hours) + '</span>');
+    if (p.warn) tags.push('<span class="tag warn">' + esc(p.warn) + '</span>');
+    if (p.extra) tags.push('<span class="tag">' + esc(p.extra) + '</span>');
+    if (p.opt) tags.push('<span class="tag">Optional</span>');
+    const acts = [];
+    if (p.addr) acts.push('<a class="pill ink sm" href="' + GQ(p.name + ', ' + p.addr) + '" target="_blank" rel="noopener">Directions ' + arrow + '</a>');
+    if (p.ll && p.kind !== 'home') acts.push('<button type="button" class="pill outline sm" data-show="' + idx + '">Show on map</button>');
+    el.innerHTML =
+      (p.burst ? '<svg class="mini-burst" viewBox="-100 -100 200 200" aria-hidden="true"><path d="' + burstPath(14, 88, 46, 4.5) + '" fill="#0a0a0a"/></svg>' : '') +
+      '<div class="top"><span class="num">' + esc(p.n) + '</span><span class="time">' + esc(p.time) + '</span></div>' +
+      '<h3>' + esc(p.name) + '</h3>' +
+      (p.addr ? '<div class="addr">' + esc(p.addr) + '</div>' : '') +
+      (tags.length ? '<div class="tags">' + tags.join('') + '</div>' : '') +
+      '<p>' + esc(p.text) + '</p>' +
+      (acts.length ? '<div class="acts">' + acts.join('') + '</div>' : '');
+    tl.appendChild(el);
+  });
+
+  // ---------- day bar ----------
+  const bar = document.getElementById('bar');
+  const T0 = 510, T1 = 1200;
+  PLAN.filter(p => p.start != null).forEach(p => {
+    const seg = document.createElement('div');
+    seg.style.flex = (p.end - p.start) + ' 0 0';
+    if (p.drive) seg.className = 'drv';
+    else if (p.kind === 'meal') { seg.className = 'meal'; seg.title = 'Lunch'; }
+    else { seg.style.background = C[p.color]; seg.textContent = p.n; seg.title = p.name + ' · ' + p.time; seg.dataset.idx = PLAN.indexOf(p); seg.setAttribute('role', 'button'); seg.tabIndex = 0; seg.setAttribute('aria-label', p.name + ', ' + p.time); }
+    bar.appendChild(seg);
+  });
+  const ticks = document.getElementById('ticks');
+  [[510, '8:30'], [600, '10'], [720, '12'], [840, '2'], [960, '4'], [1080, '6'], [1200, '8 PM']].forEach(([t, lbl]) => {
+    const s = document.createElement('span');
+    s.style.left = ((t - T0) / (T1 - T0) * 100).toFixed(2) + '%';
+    s.textContent = lbl;
+    ticks.appendChild(s);
+  });
+  const gotoCard = idx => { const c = document.getElementById('card-' + idx); if (c) { c.scrollIntoView({ behavior: 'smooth', block: 'center' }); highlight(idx, true); } };
+  bar.addEventListener('click', e => { const s = e.target.closest('[data-idx]'); if (s) gotoCard(+s.dataset.idx); });
+  bar.addEventListener('keydown', e => { const s = e.target.closest('[data-idx]'); if (s && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); gotoCard(+s.dataset.idx); } });
+
+  // ---------- section nav ----------
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+    document.getElementById(b.dataset.go)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }));
+  const tabs = document.querySelectorAll('.tabbar button');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => { if (en.isIntersecting) tabs.forEach(t => t.setAttribute('aria-current', String(t.dataset.go === en.target.id))); });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    ['map-sec', 'plan', 'notes'].forEach(id => { const el = document.getElementById(id); if (el) io.observe(el); });
+  }
+
+  // ---------- map ----------
+  const flip = a => a.map(c => [c[1], c[0]]);
+  const map = L.map('map', { preferCanvas: true, zoomControl: false, minZoom: 8, maxZoom: 17, zoomSnap: 0.25, wheelPxPerZoomLevel: 90 });
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  map.attributionControl.setPrefix(false);
+  map.attributionControl.addAttribution('Roads &amp; water: US Census TIGER/Line · Route: OSRM, © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>');
+
+  ['places', 'water', 'roads', 'route', 'labels'].forEach((n, i) => {
+    const pane = map.createPane(n);
+    pane.style.zIndex = 300 + i * 20;
+    if (n === 'labels') pane.style.pointerEvents = 'none';
+  });
+  const canvasFor = pane => L.canvas({ pane, padding: 0.4 });
+  const R = { places: canvasFor('places'), water: canvasFor('water'), roads: canvasFor('roads'), route: canvasFor('route') };
+
+  const STOPS = PLAN.map((p, idx) => ({ ...p, idx })).filter(p => p.ll);
+  const regionLayers = L.layerGroup(), cityLayers = L.layerGroup(), regionLabels = L.layerGroup(), cityLabels = L.layerGroup();
+  const markers = {};
+
+  STOPS.forEach(s => {
+    const home = s.kind === 'home';
+    const size = home ? 34 : 30;
+    // Barrett's (north) and Heartening (south) are ~450 m apart: shift the pins up/down a little so both stay readable
+    const nudge = s.n === 3 ? [6, -12] : s.n === 4 ? [-6, 12] : [0, 0];
+    const m = L.marker(s.ll, {
+      icon: L.divIcon({ className: '', html: '<div class="pin' + (home ? ' home' : '') + '" style="background:' + (home ? '#fff' : C[s.color]) + '">' + esc(s.n) + '</div>', iconSize: [size, size], iconAnchor: [size / 2 - nudge[0], size / 2 - nudge[1]] }),
+      title: s.name, riseOnHover: true, zIndexOffset: home ? 0 : 500
+    }).addTo(map);
+    m.bindPopup('<strong>' + esc(s.name) + '</strong>' + esc(home ? 'Start and finish' : s.time) +
+      (s.hours ? '<br><span class="muted">' + esc(s.hours) + '</span>' : ''), { offset: [0, -10] });
+    m.on('click', () => highlight(s.idx, false));
+    markers[s.idx] = m;
+  });
+
+  let active = null;
+  function highlight(idx, fromList) {
+    if (active !== null) {
+      document.getElementById('card-' + active)?.classList.remove('active');
+      markers[active]?.getElement()?.querySelector('.pin')?.classList.remove('active');
+    }
+    active = idx;
+    const card = document.getElementById('card-' + idx);
+    card?.classList.add('active');
+    markers[idx]?.getElement()?.querySelector('.pin')?.classList.add('active');
+    if (!fromList && card && window.matchMedia('(min-width: 980px)').matches) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  tl.addEventListener('click', e => {
+    const b = e.target.closest('[data-show]');
+    if (!b) return;
+    const idx = +b.dataset.show, p = PLAN[idx];
+    highlight(idx, true);
+    setPressed(null);
+    if (!window.matchMedia('(min-width: 980px)').matches) document.getElementById('map-sec').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    map.flyTo(p.ll, 15.5, { duration: 0.8 });
+    setTimeout(() => markers[idx].openPopup(), 850);
+  });
+
+  const austinBounds = L.latLngBounds(STOPS.filter(s => typeof s.n === 'number' && s.n <= 6).map(s => s.ll));
+  let loopBounds = L.latLngBounds(STOPS.map(s => s.ll));
+  const VIEWS = {
+    loop: () => map.fitBounds(loopBounds, { paddingTopLeft: [36, 70], paddingBottomRight: [36, 56] }),
+    austin: () => map.fitBounds(austinBounds, { paddingTopLeft: [44, 92], paddingBottomRight: [56, 64] }),
+    sm: () => map.setView([29.8825839, -97.9163635], 13.5)
+  };
+  const segBtns = document.querySelectorAll('.seg button');
+  function setPressed(v) { segBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === v))); }
+  segBtns.forEach(b => b.addEventListener('click', () => { setPressed(b.dataset.view); VIEWS[b.dataset.view](); }));
+  VIEWS.loop();
+
+  function syncZoom() {
+    const city = map.getZoom() >= 11.5;
+    if (city) { map.addLayer(cityLayers); map.addLayer(cityLabels); map.removeLayer(regionLabels); }
+    else { map.removeLayer(cityLayers); map.removeLayer(cityLabels); map.addLayer(regionLabels); }
+  }
+  map.on('zoomend', syncZoom);
+
+  fetch('mapdata.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(D => {
+    D.places.forEach(p => {
+      L.polygon(p.rings.map(r => [flip(r)]), { renderer: R.places, stroke: true, color: '#232323', weight: 1, fillColor: '#181818', fillOpacity: 1, interactive: false }).addTo(map);
+      const big = ['San Antonio', 'Austin', 'San Marcos', 'New Braunfels'].includes(p.name);
+      if (big || ['Kyle', 'Buda', 'Round Rock', 'Seguin', 'Lockhart', 'Pflugerville'].includes(p.name)) {
+        const lab = p.name === 'San Antonio' ? [29.47, -98.66] : p.name === 'Austin' ? [30.37, -97.90] : p.name === 'San Marcos' ? [29.905, -98.15] : [p.lab[1], p.lab[0]];
+        L.marker(lab, { pane: 'labels', interactive: false, keyboard: false,
+          icon: L.divIcon({ className: '', html: '<div class="city-label' + (big ? ' big' : '') + '">' + esc(p.name) + '</div>', iconSize: null, iconAnchor: [0, 8] }) }).addTo(regionLabels);
+      }
+    });
+    L.polygon(D.water.map(poly => poly.map(flip)), { renderer: R.water, stroke: true, color: '#2c4d86', weight: 0.8, fillColor: '#223d6b', fillOpacity: 1, interactive: false }).addTo(map);
+    L.polyline(D.region.secondary.map(flip), { renderer: R.roads, color: '#303030', weight: 1.4, interactive: false }).addTo(regionLayers);
+    L.polyline(D.region.primary.map(flip), { renderer: R.roads, color: '#4a4a48', weight: 2.4, interactive: false }).addTo(regionLayers);
+    regionLayers.addTo(map);
+    L.polyline(D.city.local.map(flip), { renderer: R.roads, color: '#222222', weight: 0.8, interactive: false }).addTo(cityLayers);
+    L.polyline(D.city.art.map(flip), { renderer: R.roads, color: '#333332', weight: 1.8, interactive: false }).addTo(cityLayers);
+    L.polyline(D.city.secondary.map(flip), { renderer: R.roads, color: '#3e3e3c', weight: 2.4, interactive: false }).addTo(cityLayers);
+    L.polyline(D.city.primary.map(flip), { renderer: R.roads, color: '#555553', weight: 3.4, interactive: false }).addTo(cityLayers);
+    (D.shields || []).forEach(s => {
+      const [txt, kind, scope, lat, lon] = s;
+      if (scope === 'region' && STOPS.some(st => Math.abs(st.ll[0] - lat) + Math.abs(st.ll[1] - lon) < 0.08)) return;
+      const lbl = kind === 'i' ? 'I-' + txt : kind === 'l' ? 'Loop 1' : kind === 'u' ? 'US ' + txt : 'TX ' + txt;
+      L.marker([lat, lon], { pane: 'labels', interactive: false, keyboard: false,
+        icon: L.divIcon({ className: '', html: '<div class="shield">' + esc(lbl) + '</div>', iconSize: null, iconAnchor: [14, 8] }) })
+        .addTo(scope === 'city' ? cityLabels : regionLabels);
+    });
+    const route = flip(D.route);
+    L.polyline(route, { renderer: R.route, color: '#0a0a0a', weight: 9, opacity: 0.9, interactive: false, lineJoin: 'round' }).addTo(map);
+    L.polyline(route, { renderer: R.route, color: '#f2ee5c', weight: 4.2, opacity: 1, interactive: false, lineJoin: 'round' }).addTo(map);
+    loopBounds = L.latLngBounds(route);
+    if (D.total && D.total.mi) document.getElementById('stat-mi').textContent = Math.round(D.total.mi);
+    if (document.querySelector('.seg button[data-view="loop"]').getAttribute('aria-pressed') === 'true') VIEWS.loop();
+    syncZoom();
+  }).catch(() => {
+    document.getElementById('map-error').style.display = 'block';
+    L.polyline(STOPS.map(s => s.ll).concat([STOPS[0].ll]), { color: '#f2ee5c', weight: 3, dashArray: '6 6' }).addTo(map);
+    syncZoom();
+  });
+})();
+</script>
+</body>
+</html>
